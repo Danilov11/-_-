@@ -638,14 +638,12 @@ function handleEmployeeLogin() {
 }
 
 function doEmployeeLogin(normalizedPhone, errorEl) {
-    // Ищем сотрудника по телефону в документах
+    // Ищем сотрудника по телефону в документах и выплатах
     const doc = allDocuments.find(d => normalizePhone(d.phone) === normalizedPhone);
-    // Или в выплатах
-    const pay = allPayments.find(p => normalizePhone(p.phone) === normalizedPhone);
+    const pays = allPayments.filter(p => normalizePhone(p.phone) === normalizedPhone);
+    const pay = pays[0] || null;
 
-    const inn = (doc && doc.inn) || (pay && pay.inn);
-
-    if (!inn && !doc && !pay) {
+    if (!doc && !pay) {
         if (errorEl) {
             errorEl.textContent = 'Сотрудник с таким номером не найден. Проверьте номер.';
             errorEl.classList.remove('hidden');
@@ -677,12 +675,43 @@ function doEmployeeLogin(normalizedPhone, errorEl) {
     if (empScreen) empScreen.classList.remove('hidden');
     currentScreen = 'employee';
 
-    // Загружаем данные сотрудника
-    if (inn) {
-        showEmployeeDetailsByINN(inn);
-    } else if (doc) {
-        showEmployeeDetailsByINN(doc.inn || '', doc);
+    // Напрямую заполняем глобальные переменные и вызываем рендер
+    const employeeName = (doc && doc.employee) || (pay && pay.employee) || '';
+    const employeePhone = (doc && doc.phone) || (pay && pay.phone) || normalizedPhone;
+    const employeeInn = (doc && doc.inn) || (pay && pay.inn) || '';
+
+    currentEmployee = {
+        employee: employeeName,
+        phone: employeePhone,
+        inn: employeeInn,
+        citizenship: (doc && doc.citizenship) || '',
+        payment: pay,
+        document: doc || null
+    };
+
+    currentEmployeePayments = pays;
+
+    // Если по телефону не нашли в выплатах, пробуем по ИНН
+    if (currentEmployeePayments.length === 0 && employeeInn) {
+        const normalizedInn = normalizeINN(employeeInn);
+        currentEmployeePayments = allPayments.filter(p => normalizeINN(p.inn) === normalizedInn);
     }
+
+    // Заполняем заголовок экрана сотрудника
+    if (elements.employeeName) elements.employeeName.textContent = employeeName;
+    if (elements.employeePhone) elements.employeePhone.textContent = employeePhone ? '📱 ' + formatPhone(employeePhone) : '';
+    if (elements.employeeCitizenship) elements.employeeCitizenship.textContent = currentEmployee.citizenship ? '🌍 ' + currentEmployee.citizenship : '';
+    if (elements.telegramLink && employeePhone) {
+        elements.telegramLink.href = CONFIG.telegramUrl + '+' + formatPhoneForTelegram(employeePhone);
+    }
+
+    // Скрываем предупреждение о несовпадении
+    const mismatchWarning = document.getElementById('employee-mismatch-warning');
+    if (mismatchWarning) mismatchWarning.classList.add('hidden');
+
+    // Рендерим документы и выплаты
+    renderEmployeeDocuments();
+    renderEmployeeTable();
 }
 
 function handleEmployeeLogout() {

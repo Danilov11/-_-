@@ -788,6 +788,8 @@ function renderEmployeeTable() {
         if (elements.totalPayments) elements.totalPayments.textContent = '0';
         if (elements.totalAmount) elements.totalAmount.textContent = '0';
         if (elements.lastPaymentDate) elements.lastPaymentDate.textContent = '-';
+        if (elements.employeeLoading) elements.employeeLoading.classList.add('hidden');
+        if (elements.employeeTableContainer) elements.employeeTableContainer.classList.remove('hidden');
         return;
     }
     
