@@ -28,18 +28,19 @@ const elements = {};
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
-    // Проверка пароля для доступа к платформе
-    checkPlatformPassword();
-    
+    // Скрываем основной контейнер до успешного входа
+    const mainContainer = document.querySelector('.container');
+    if (mainContainer) mainContainer.classList.add('hidden');
+
+    // Показываем экран входа (данные грузятся в фоне)
+    showLoginScreen();
+
     // Сначала инициализируем элементы DOM
     initializeDOMElements();
-    
+
     // Затем настраиваем обработчики событий
     setupEventListeners();
-    
-    // И только потом загружаем данные
-    loadData();
-    
+
     // Обновление времени последнего обновления
     updateLastUpdateTime();
     
@@ -48,31 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
         loadData();
     }, CONFIG.refreshInterval);
 });
-
-// Проверка пароля для доступа к платформе
-function checkPlatformPassword() {
-    // Проверяем, был ли уже введен правильный пароль в этой сессии
-    const platformAccessGranted = sessionStorage.getItem('platformAccessGranted') === 'true';
-    
-    if (platformAccessGranted) {
-        // Доступ уже предоставлен
-        return;
-    }
-    
-    // Запрашиваем пароль
-    const password = prompt('Введите пароль для доступа к платформе:');
-    
-    if (password === CONFIG.platformPassword) {
-        // Пароль правильный, сохраняем доступ в сессии
-        sessionStorage.setItem('platformAccessGranted', 'true');
-    } else {
-        // Пароль неверный, блокируем доступ
-        alert('Неверный пароль. Доступ запрещен.');
-        // Перенаправляем на пустую страницу или показываем сообщение
-        document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-size: 24px;">Доступ запрещен. Обновите страницу и введите правильный пароль.</div>';
-        throw new Error('Access denied');
-    }
-}
 
 // Инициализация элементов DOM
 function initializeDOMElements() {
@@ -179,6 +155,28 @@ function setupEventListeners() {
         });
     });
     
+    // Модальное окно "Добавить сотрудника"
+    const addEmployeeBtn = document.getElementById('add-employee-btn');
+    const addEmployeeModal = document.getElementById('add-employee-modal');
+    const addEmployeeClose = document.getElementById('add-employee-modal-close');
+    const addEmployeeDismiss = document.getElementById('add-employee-modal-dismiss');
+
+    function openAddEmployeeModal() {
+        addEmployeeModal.classList.remove('hidden');
+        addEmployeeModal.setAttribute('aria-hidden', 'false');
+    }
+    function closeAddEmployeeModal() {
+        addEmployeeModal.classList.add('hidden');
+        addEmployeeModal.setAttribute('aria-hidden', 'true');
+    }
+
+    if (addEmployeeBtn) addEmployeeBtn.addEventListener('click', openAddEmployeeModal);
+    if (addEmployeeClose) addEmployeeClose.addEventListener('click', closeAddEmployeeModal);
+    if (addEmployeeDismiss) addEmployeeDismiss.addEventListener('click', closeAddEmployeeModal);
+    if (addEmployeeModal) addEmployeeModal.addEventListener('click', (e) => {
+        if (e.target === addEmployeeModal) closeAddEmployeeModal();
+    });
+
     // Обработчик для кнопки "Партнер – Франклинс" в навигации
     const partnerNameBtn = document.querySelector('.brand-partner-name[data-page="home"]');
     if (partnerNameBtn) {
@@ -479,3 +477,223 @@ function generateTestData() {
 
 // Глобальная функция для выхода из режима
 window.exitMode = exitMode;
+
+// ========================
+// ЛОГИКА ЭКРАНА ВХОДА
+// ========================
+
+function showLoginScreen() {
+    // Сбрасываем флаги сессии
+    sessionStorage.removeItem('platformAccessGranted');
+    sessionStorage.removeItem('dashboardAccessGranted');
+    sessionStorage.removeItem('employeeMode');
+
+    const loginScreen = document.getElementById('login-screen');
+    if (loginScreen) loginScreen.classList.remove('hidden');
+
+    // Грузим данные в фоне, не показывая основной интерфейс
+    loadData();
+
+    setupLoginListeners();
+}
+
+function setupLoginListeners() {
+    // Кнопки выбора роли
+    const managerBtn = document.getElementById('role-manager-btn');
+    const employeeBtn = document.getElementById('role-employee-btn');
+    if (managerBtn) managerBtn.addEventListener('click', () => switchLoginStep('manager'));
+    if (employeeBtn) employeeBtn.addEventListener('click', () => switchLoginStep('employee'));
+
+    // Назад
+    const backFromManager = document.getElementById('login-back-from-manager');
+    const backFromEmployee = document.getElementById('login-back-from-employee');
+    if (backFromManager) backFromManager.addEventListener('click', () => switchLoginStep('role'));
+    if (backFromEmployee) backFromEmployee.addEventListener('click', () => switchLoginStep('role'));
+
+    // Вход руководителя
+    const managerLoginBtn = document.getElementById('manager-login-btn');
+    const managerInput = document.getElementById('manager-password-input');
+    if (managerLoginBtn) managerLoginBtn.addEventListener('click', handleManagerLogin);
+    if (managerInput) managerInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleManagerLogin();
+    });
+
+    // Вход сотрудника
+    const employeeLoginBtn = document.getElementById('employee-login-btn');
+    const employeeInput = document.getElementById('employee-phone-input');
+    if (employeeLoginBtn) employeeLoginBtn.addEventListener('click', handleEmployeeLogin);
+    if (employeeInput) {
+        employeeInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleEmployeeLogin();
+        });
+        // Автоформат: добавляем +7 если пусто
+        employeeInput.addEventListener('focus', () => {
+            if (!employeeInput.value) employeeInput.value = '+7';
+        });
+    }
+
+    // Кнопка выхода в экране сотрудника
+    const logoutBtn = document.getElementById('employee-logout-btn');
+    if (logoutBtn) logoutBtn.addEventListener('click', handleEmployeeLogout);
+}
+
+function switchLoginStep(step) {
+    document.getElementById('login-step-role').classList.add('hidden');
+    document.getElementById('login-step-manager').classList.add('hidden');
+    document.getElementById('login-step-employee').classList.add('hidden');
+
+    // Сбрасываем ошибки
+    const managerError = document.getElementById('manager-login-error');
+    const employeeError = document.getElementById('employee-login-error');
+    if (managerError) managerError.classList.add('hidden');
+    if (employeeError) employeeError.classList.add('hidden');
+
+    document.getElementById(`login-step-${step}`).classList.remove('hidden');
+
+    // Фокус на поле ввода
+    if (step === 'manager') {
+        setTimeout(() => {
+            const inp = document.getElementById('manager-password-input');
+            if (inp) inp.focus();
+        }, 50);
+    }
+    if (step === 'employee') {
+        setTimeout(() => {
+            const inp = document.getElementById('employee-phone-input');
+            if (inp) { inp.focus(); if (!inp.value) inp.value = '+7'; }
+        }, 50);
+    }
+}
+
+function handleManagerLogin() {
+    const input = document.getElementById('manager-password-input');
+    const error = document.getElementById('manager-login-error');
+    const password = input ? input.value : '';
+
+    if (password === CONFIG.platformPassword) {
+        sessionStorage.setItem('platformAccessGranted', 'true');
+        const loginScreen = document.getElementById('login-screen');
+        if (loginScreen) loginScreen.classList.add('hidden');
+        // Приложение уже загружено в фоне — просто показываем его
+        document.querySelector('.container').classList.remove('hidden');
+    } else {
+        if (error) error.classList.remove('hidden');
+        if (input) input.select();
+    }
+}
+
+function handleEmployeeLogin() {
+    const input = document.getElementById('employee-phone-input');
+    const error = document.getElementById('employee-login-error');
+    const loading = document.getElementById('employee-login-loading');
+    const rawPhone = input ? input.value.trim() : '';
+
+    if (error) error.classList.add('hidden');
+
+    // Базовая валидация
+    const normalized = normalizePhone(rawPhone);
+    if (!normalized || normalized.length < 10) {
+        if (error) {
+            error.textContent = 'Введите корректный номер телефона, начиная с +7';
+            error.classList.remove('hidden');
+        }
+        return;
+    }
+
+    // Если данные ещё не загрузились — ждём
+    if (allDocuments.length === 0 && allPayments.length === 0) {
+        if (loading) loading.classList.remove('hidden');
+        const btn = document.getElementById('employee-login-btn');
+        if (btn) btn.disabled = true;
+
+        let attempts = 0;
+        const wait = setInterval(() => {
+            attempts++;
+            if (allDocuments.length > 0 || allPayments.length > 0) {
+                clearInterval(wait);
+                if (loading) loading.classList.add('hidden');
+                if (btn) btn.disabled = false;
+                doEmployeeLogin(normalized, error);
+            } else if (attempts > 30) { // 15 сек
+                clearInterval(wait);
+                if (loading) loading.classList.add('hidden');
+                if (btn) btn.disabled = false;
+                if (error) {
+                    error.textContent = 'Не удалось загрузить данные. Проверьте соединение и попробуйте снова.';
+                    error.classList.remove('hidden');
+                }
+            }
+        }, 500);
+        return;
+    }
+
+    doEmployeeLogin(normalized, error);
+}
+
+function doEmployeeLogin(normalizedPhone, errorEl) {
+    // Ищем сотрудника по телефону в документах
+    const doc = allDocuments.find(d => normalizePhone(d.phone) === normalizedPhone);
+    // Или в выплатах
+    const pay = allPayments.find(p => normalizePhone(p.phone) === normalizedPhone);
+
+    const inn = (doc && doc.inn) || (pay && pay.inn);
+
+    if (!inn && !doc && !pay) {
+        if (errorEl) {
+            errorEl.textContent = 'Сотрудник с таким номером не найден. Проверьте номер.';
+            errorEl.classList.remove('hidden');
+        }
+        return;
+    }
+
+    // Успешный вход
+    sessionStorage.setItem('employeeMode', 'true');
+    sessionStorage.setItem('employeePhone', normalizedPhone);
+
+    // Скрываем экран входа
+    const loginScreen = document.getElementById('login-screen');
+    if (loginScreen) loginScreen.classList.add('hidden');
+
+    // Включаем режим сотрудника: скрываем главную навигацию
+    document.body.classList.add('employee-mode');
+
+    // Показываем кнопку выхода, скрываем кнопку "Назад"
+    const backBtn = document.getElementById('back-button');
+    const logoutBtn = document.getElementById('employee-logout-btn');
+    if (backBtn) backBtn.classList.add('hidden');
+    if (logoutBtn) logoutBtn.classList.remove('hidden');
+
+    // Показываем экран сотрудника
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+    const empScreen = document.getElementById('employee-screen');
+    if (empScreen) empScreen.classList.remove('hidden');
+    currentScreen = 'employee';
+
+    // Загружаем данные сотрудника
+    if (inn) {
+        showEmployeeDetailsByINN(inn);
+    } else if (doc) {
+        showEmployeeDetailsByINN(doc.inn || '', doc);
+    }
+}
+
+function handleEmployeeLogout() {
+    sessionStorage.removeItem('employeeMode');
+    sessionStorage.removeItem('employeePhone');
+    document.body.classList.remove('employee-mode');
+
+    // Возвращаем кнопку "Назад"
+    const backBtn = document.getElementById('back-button');
+    const logoutBtn = document.getElementById('employee-logout-btn');
+    if (backBtn) backBtn.classList.remove('hidden');
+    if (logoutBtn) logoutBtn.classList.add('hidden');
+
+    // Показываем экран входа снова
+    const loginScreen = document.getElementById('login-screen');
+    if (loginScreen) loginScreen.classList.remove('hidden');
+    switchLoginStep('role');
+
+    // Сбрасываем поля
+    const phoneInput = document.getElementById('employee-phone-input');
+    if (phoneInput) phoneInput.value = '';
+}

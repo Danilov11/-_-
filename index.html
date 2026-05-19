@@ -30,6 +30,74 @@
     <script src="js/main.js"></script>
 </head>
 <body>
+    <!-- Экран входа -->
+    <div id="login-screen" class="login-screen">
+        <div class="login-box">
+            <div class="login-brand">
+                <img src="лого.png" alt="Логотип" class="login-logo">
+                <div class="login-brand-text">
+                    <span class="login-company">Синержи</span>
+                    <span class="login-partner">Партнёр – Франклинс</span>
+                </div>
+            </div>
+
+            <!-- Шаг 1: выбор роли -->
+            <div id="login-step-role">
+                <p class="login-welcome">Добро пожаловать! Выберите роль для входа</p>
+                <div class="role-cards">
+                    <button class="role-card" id="role-manager-btn">
+                        <i class="fas fa-user-tie role-card-icon"></i>
+                        <span class="role-card-title">Руководитель</span>
+                        <span class="role-card-desc">Управление командой, выплаты, документы</span>
+                    </button>
+                    <button class="role-card" id="role-employee-btn">
+                        <i class="fas fa-user role-card-icon"></i>
+                        <span class="role-card-title">Сотрудник</span>
+                        <span class="role-card-desc">Мои выплаты и документы</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Шаг 2а: пароль руководителя -->
+            <div id="login-step-manager" class="login-step hidden">
+                <button class="login-back-btn" id="login-back-from-manager">
+                    <i class="fas fa-arrow-left"></i> Назад
+                </button>
+                <div class="login-step-icon"><i class="fas fa-user-tie"></i></div>
+                <h2 class="login-step-title">Вход для руководителя</h2>
+                <div class="login-field-group">
+                    <label>Пароль</label>
+                    <input type="password" id="manager-password-input" class="login-input" placeholder="Введите пароль" autocomplete="current-password">
+                </div>
+                <p id="manager-login-error" class="login-error hidden">Неверный пароль. Попробуйте ещё раз.</p>
+                <button class="btn btn-primary login-submit-btn" id="manager-login-btn">
+                    <i class="fas fa-sign-in-alt"></i> Войти
+                </button>
+            </div>
+
+            <!-- Шаг 2б: телефон сотрудника -->
+            <div id="login-step-employee" class="login-step hidden">
+                <button class="login-back-btn" id="login-back-from-employee">
+                    <i class="fas fa-arrow-left"></i> Назад
+                </button>
+                <div class="login-step-icon"><i class="fas fa-user"></i></div>
+                <h2 class="login-step-title">Вход для сотрудника</h2>
+                <div class="login-field-group">
+                    <label>Номер телефона</label>
+                    <input type="tel" id="employee-phone-input" class="login-input" placeholder="+7 (999) 999-99-99" autocomplete="tel">
+                </div>
+                <p id="employee-login-error" class="login-error hidden">Сотрудник с таким номером не найден. Проверьте номер.</p>
+                <div id="employee-login-loading" class="login-loading hidden">
+                    <div class="spinner-small"></div>
+                    <span>Идёт загрузка данных, подождите...</span>
+                </div>
+                <button class="btn btn-primary login-submit-btn" id="employee-login-btn">
+                    <i class="fas fa-search"></i> Найти мои данные
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <!-- Навигация -->
         <nav class="main-nav">
@@ -242,7 +310,7 @@
 
             <!-- Панель действий -->
             <div class="detours-toolbar">
-                <button type="button" class="btn btn-primary btn-detours-main" onclick="alert('Функция в разработке. Направьте документы менеджеру.')">
+                <button type="button" class="btn btn-primary btn-detours-main" id="add-employee-btn">
                     <i class="fas fa-user-plus"></i> Добавить сотрудника
                 </button>
             </div>
@@ -544,6 +612,9 @@
                 <button id="back-button" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Назад
                 </button>
+                <button id="employee-logout-btn" class="btn btn-secondary hidden">
+                    <i class="fas fa-sign-out-alt"></i> Выйти
+                </button>
                 <div class="employee-header">
                     <h1 id="employee-name"></h1>
                     <div class="employee-actions">
@@ -646,6 +717,30 @@
             <p>© Панель выплат партнёрам. Данные обновляются автоматически.</p>
             <p class="last-update" id="last-update">Последнее обновление: -</p>
         </footer>
+    </div>
+
+    <!-- Модальное окно: добавить сотрудника (в разработке) -->
+    <div id="add-employee-modal" class="modal-overlay hidden" aria-hidden="true">
+        <div class="modal-dialog" role="dialog" aria-labelledby="add-employee-modal-title">
+            <div class="modal-header">
+                <h2 id="add-employee-modal-title"><i class="fas fa-user-plus"></i> Добавить сотрудника</h2>
+                <button type="button" class="modal-close" id="add-employee-modal-close" aria-label="Закрыть">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align: center; padding: 40px 30px;">
+                <div style="font-size: 3rem; margin-bottom: 20px;">🚧</div>
+                <h3 style="margin-bottom: 12px;">Функционал в разработке</h3>
+                <p style="color: var(--gray-600); margin-bottom: 24px;">
+                    Скоро здесь можно будет добавлять сотрудников прямо из платформы.<br>
+                    Пока направьте документы нашему менеджеру.
+                </p>
+                <a href="https://t.me/VolDen_Ops" target="_blank" class="btn btn-primary">
+                    <i class="fab fa-telegram"></i> Написать менеджеру
+                </a>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="add-employee-modal-dismiss">Закрыть</button>
+            </div>
+        </div>
     </div>
 
     <!-- Bitrix24 обратная связь -->
