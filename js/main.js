@@ -575,6 +575,17 @@ function handleManagerLogin() {
         const loginScreen = document.getElementById('login-screen');
         if (loginScreen) loginScreen.classList.add('hidden');
         document.querySelector('.container').classList.remove('hidden');
+
+        // Сбрасываем состояние после возможного режима сотрудника
+        document.body.classList.remove('employee-mode');
+        const backBtn = document.getElementById('back-button');
+        const logoutBtn = document.getElementById('employee-logout-btn');
+        if (backBtn) backBtn.classList.remove('hidden');
+        if (logoutBtn) logoutBtn.classList.add('hidden');
+
+        // Переходим на главный экран
+        showScreen('home');
+
         // Если данные уже загружены — перерисовываем, иначе грузим заново
         if (allPayments.length > 0 || allDocuments.length > 0) {
             applyFilters();
