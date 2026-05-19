@@ -574,8 +574,15 @@ function handleManagerLogin() {
         sessionStorage.setItem('platformAccessGranted', 'true');
         const loginScreen = document.getElementById('login-screen');
         if (loginScreen) loginScreen.classList.add('hidden');
-        // Приложение уже загружено в фоне — просто показываем его
         document.querySelector('.container').classList.remove('hidden');
+        // Если данные уже загружены — перерисовываем, иначе грузим заново
+        if (allPayments.length > 0 || allDocuments.length > 0) {
+            applyFilters();
+            applyDocFilters();
+            updateStatistics();
+        } else {
+            loadData();
+        }
     } else {
         if (error) error.classList.remove('hidden');
         if (input) input.select();
@@ -650,9 +657,10 @@ function doEmployeeLogin(normalizedPhone, errorEl) {
     sessionStorage.setItem('employeeMode', 'true');
     sessionStorage.setItem('employeePhone', normalizedPhone);
 
-    // Скрываем экран входа
+    // Скрываем экран входа, показываем контейнер
     const loginScreen = document.getElementById('login-screen');
     if (loginScreen) loginScreen.classList.add('hidden');
+    document.querySelector('.container').classList.remove('hidden');
 
     // Включаем режим сотрудника: скрываем главную навигацию
     document.body.classList.add('employee-mode');
