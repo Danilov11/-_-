@@ -736,6 +736,16 @@ function handleEmployeeLogout() {
     if (backBtn) backBtn.classList.remove('hidden');
     if (logoutBtn) logoutBtn.classList.add('hidden');
 
+    // Скрываем все экраны и показываем главный (он будет под логин-оверлеем)
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+    const homeScreen = document.getElementById('home-screen');
+    if (homeScreen) homeScreen.classList.remove('hidden');
+    currentScreen = 'home';
+
+    // Скрываем контейнер — покажем снова только после входа
+    const container = document.querySelector('.container');
+    if (container) container.classList.add('hidden');
+
     // Показываем экран входа снова
     const loginScreen = document.getElementById('login-screen');
     if (loginScreen) loginScreen.classList.remove('hidden');
