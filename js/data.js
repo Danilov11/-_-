@@ -145,19 +145,8 @@ function getDocumentStatus(doc) {
 
 // Обновление статистики
 function updateStatistics() {
-    // Оформлено - только те, у кого статус именно "оформлен" в первой колонке
-    const processed = allDocuments.filter(d => {
-        const status = (d.collected || '').toLowerCase().trim();
-        const inProcessStatus = (d.inProcess || '').toLowerCase().trim();
-        // Проверяем точное совпадение со словом "оформлен"
-        return status === 'оформлен' || inProcessStatus === 'оформлен';
-    }).length;
-    
-    // Общее количество БЕЗ уволенных (для расчета процента)
-    const totalWithoutDismissed = allDocuments.filter(d => {
-        const realStatus = (d.realStatus || '').toLowerCase().trim();
-        return !realStatus.includes('уволен');
-    }).length;
+    const processed = getProcessedDocumentsCount();
+    const totalWithoutDismissed = getActiveDocumentsCount();
     
     if (elements.statProcessedCount) {
         elements.statProcessedCount.textContent = processed;
@@ -168,6 +157,26 @@ function updateStatistics() {
     } else if (elements.statProcessedPercent) {
         elements.statProcessedPercent.textContent = '(0%)';
     }
+}
+
+function isProcessedDocument(d) {
+    const status = (d.collected || '').toLowerCase().trim();
+    const inProcessStatus = (d.inProcess || '').toLowerCase().trim();
+    return status === 'оформлен' || inProcessStatus === 'оформлен';
+}
+
+function isDismissedDocument(d) {
+    const realStatus = (d.realStatus || '').toLowerCase().trim();
+    const hasDismissedDate = d.dismissedDate && String(d.dismissedDate).trim() !== '';
+    return realStatus.includes('уволен') || hasDismissedDate;
+}
+
+function getProcessedDocumentsCount() {
+    return allDocuments.filter(isProcessedDocument).length;
+}
+
+function getActiveDocumentsCount() {
+    return allDocuments.filter(d => !isDismissedDocument(d)).length;
 }
 
 // ДИНАМИЧЕСКОЕ ОБНОВЛЕНИЕ ПЕРИОДОВ И СТАТУСОВ

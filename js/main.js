@@ -128,7 +128,7 @@ function initializeDOMElements() {
     
     // Статистика
     elements.statProcessedCount = document.getElementById('stat-processed-count');
-    elements.statProcessedPercent = document.getElementById('stat-processed-percent');
+    elements.statProcessedPercent = document.getElementById('home-stat-processed-percent');
     
     // Итоги
     elements.totalPayments = document.getElementById('total-payments');

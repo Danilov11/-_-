@@ -116,7 +116,7 @@ function initializeDOMElements() {
     
     // Статистика
     elements.statProcessedCount = document.getElementById('stat-processed-count');
-    elements.statProcessedPercent = document.getElementById('stat-processed-percent');
+    elements.statProcessedPercent = document.getElementById('home-stat-processed-percent');
     
     // Итоги
     elements.totalPayments = document.getElementById('total-payments');
@@ -604,14 +604,8 @@ function getDocumentStatus(doc) {
 
 // Обновление статистики
 function updateStatistics() {
-    // Оформлено - только те, у кого статус именно "оформлен" в первой колонке
-    const processed = allDocuments.filter(d => {
-        const status = (d.collected || '').toLowerCase().trim();
-        const inProcessStatus = (d.inProcess || '').toLowerCase().trim();
-        // Проверяем точное совпадение со словом "оформлен"
-        return status === 'оформлен' || inProcessStatus === 'оформлен';
-    }).length;
-    const totalWithDocs = allDocuments.length;
+    const processed = getProcessedDocumentsCount();
+    const totalWithDocs = getActiveDocumentsCount();
     if (elements.statProcessedCount) {
         elements.statProcessedCount.textContent = processed;
     }
@@ -619,6 +613,26 @@ function updateStatistics() {
         const percent = Math.round((processed / totalWithDocs) * 100);
         elements.statProcessedPercent.textContent = `(${percent}%)`;
     }
+}
+
+function isProcessedDocument(d) {
+    const status = (d.collected || '').toLowerCase().trim();
+    const inProcessStatus = (d.inProcess || '').toLowerCase().trim();
+    return status === 'оформлен' || inProcessStatus === 'оформлен';
+}
+
+function isDismissedDocument(d) {
+    const realStatus = (d.realStatus || '').toLowerCase().trim();
+    const hasDismissedDate = d.dismissedDate && String(d.dismissedDate).trim() !== '';
+    return realStatus.includes('уволен') || hasDismissedDate;
+}
+
+function getProcessedDocumentsCount() {
+    return allDocuments.filter(isProcessedDocument).length;
+}
+
+function getActiveDocumentsCount() {
+    return allDocuments.filter(d => !isDismissedDocument(d)).length;
 }
 
 // ⭐ ДИНАМИЧЕСКОЕ ОБНОВЛЕНИЕ ПЕРИОДОВ И СТАТУСОВ

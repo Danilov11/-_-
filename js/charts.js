@@ -17,10 +17,7 @@ function renderDashboardCharts() {
 // Обновление карточек с метриками
 function updateDashboardStats() {
     const total = allDocuments.length;
-    const processed = allDocuments.filter(d => {
-        const status = (d.realStatus || '').toLowerCase();
-        return status.includes('оформлен') && !status.includes('на оформлении') && !status.includes('уволен');
-    }).length;
+    const processed = getProcessedDocumentsCount();
     
     const inProcess = allDocuments.filter(d => {
         const status = (d.realStatus || '').toLowerCase();
@@ -29,16 +26,12 @@ function updateDashboardStats() {
     }).length;
     
     // Уволенные - те, у кого в статусе есть "уволен" или есть дата увольнения
-    const dismissed = allDocuments.filter(d => {
-        const status = (d.realStatus || '').toLowerCase();
-        const hasDismissedDate = d.dismissedDate && d.dismissedDate.trim() !== '';
-        return status.includes('уволен') || hasDismissedDate;
-    }).length;
+    const dismissed = allDocuments.filter(isDismissedDocument).length;
     
     // Обновляем значения
     const totalEl = document.getElementById('stat-total-employees');
     const processedEl = document.getElementById('stat-processed-employees');
-    const processedPercentEl = document.getElementById('stat-processed-percent');
+    const processedPercentEl = document.getElementById('dashboard-stat-processed-percent');
     const inProcessEl = document.getElementById('stat-in-process-employees');
     const inProcessPercentEl = document.getElementById('stat-in-process-percent');
     const dismissedEl = document.getElementById('stat-dismissed-employees');
@@ -539,4 +532,3 @@ function exportPaymentsToCSV(payments) {
     
     URL.revokeObjectURL(url);
 }
-
