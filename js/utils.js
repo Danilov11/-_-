@@ -21,6 +21,19 @@ function formatCurrency(amount) {
     }).format(amount);
 }
 
+// Парсинг сумм из Google Таблицы: поддерживает числа, "12 345,67" и "12,345.67"
+function parseAmount(value) {
+    if (typeof value === 'number') return value;
+    if (value === undefined || value === null) return 0;
+
+    const normalized = String(value)
+        .replace(/\s/g, '')
+        .replace(',', '.')
+        .replace(/[^\d.-]/g, '');
+
+    return parseFloat(normalized) || 0;
+}
+
 // Форматирование телефона для отображения
 function formatPhone(phone) {
     if (!phone) return '';

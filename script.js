@@ -318,16 +318,18 @@ function processLoadedData(result) {
             // Преобразуем данные в нужный формат
             allPayments = result.data.map((item, index) => {
                 try {
+                    const amount = parseAmount(item.amount);
+
                     return {
                         id: index + 1,
                         year: item.year || new Date().getFullYear(),
                         period: (item.period || '').toString().trim(),
                         employee: (item.employee || '').toString().trim(),
                         phone: normalizePhone(String(item.phone || '')),
-                        amount: parseFloat(item.amount) || 0,
+                        amount: amount,
                         status: (item.status || '').toString().trim(),
                         comment: (item.comment || '').toString().trim(),
-                        formattedAmount: formatCurrency(parseFloat(item.amount) || 0)
+                        formattedAmount: formatCurrency(amount)
                     };
                 } catch (e) {
                     console.warn('Ошибка при обработке выплаты:', e, item);
@@ -1495,6 +1497,18 @@ function formatCurrency(amount) {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     }).format(amount);
+}
+
+function parseAmount(value) {
+    if (typeof value === 'number') return value;
+    if (value === undefined || value === null) return 0;
+
+    const normalized = String(value)
+        .replace(/\s/g, '')
+        .replace(',', '.')
+        .replace(/[^\d.-]/g, '');
+
+    return parseFloat(normalized) || 0;
 }
 
 function formatPhone(phone) {

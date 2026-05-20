@@ -84,6 +84,7 @@ function processLoadedData(result) {
             allPayments = result.data.map((item, index) => {
                 try {
                     const inn = (item.inn || '').toString().trim();
+                    const amount = parseAmount(item.amount);
                     
                     return {
                         id: index + 1,
@@ -91,11 +92,11 @@ function processLoadedData(result) {
                         period: (item.period || '').toString().trim(),
                         employee: (item.employee || '').toString().trim(),
                         phone: normalizePhone(String(item.phone || '')),
-                        amount: parseFloat(item.amount) || 0,
+                        amount: amount,
                         status: (item.status || '').toString().trim(),
                         comment: (item.comment || '').toString().trim(),
                         inn: inn, // ⭐ ДОБАВЛЕНО: ИНН
-                        formattedAmount: formatCurrency(parseFloat(item.amount) || 0)
+                        formattedAmount: formatCurrency(amount)
                     };
                 } catch (e) {
                     console.warn('Ошибка при обработке выплаты:', e, item);
