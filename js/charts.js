@@ -28,6 +28,9 @@ function updateDashboardStats() {
     // Уволенные - те, у кого в статусе есть "уволен" или есть дата увольнения
     const dismissed = allDocuments.filter(isDismissedDocument).length;
     
+    const visibleTotal = processed + inProcess + dismissed;
+    const percents = calculateRoundedPercents([processed, inProcess, dismissed], visibleTotal);
+    
     // Обновляем значения
     const totalEl = document.getElementById('stat-total-employees');
     const processedEl = document.getElementById('stat-processed-employees');
@@ -39,11 +42,31 @@ function updateDashboardStats() {
     
     if (totalEl) totalEl.textContent = total;
     if (processedEl) processedEl.textContent = processed;
-    if (processedPercentEl) processedPercentEl.textContent = total > 0 ? `${Math.round((processed / total) * 100)}%` : '0%';
+    if (processedPercentEl) processedPercentEl.textContent = `${percents[0]}%`;
     if (inProcessEl) inProcessEl.textContent = inProcess;
-    if (inProcessPercentEl) inProcessPercentEl.textContent = total > 0 ? `${Math.round((inProcess / total) * 100)}%` : '0%';
+    if (inProcessPercentEl) inProcessPercentEl.textContent = `${percents[1]}%`;
     if (dismissedEl) dismissedEl.textContent = dismissed;
-    if (dismissedPercentEl) dismissedPercentEl.textContent = total > 0 ? `${Math.round((dismissed / total) * 100)}%` : '0%';
+    if (dismissedPercentEl) dismissedPercentEl.textContent = `${percents[2]}%`;
+}
+
+function calculateRoundedPercents(values, total) {
+    if (!total) return values.map(() => 0);
+
+    const raw = values.map(value => (value / total) * 100);
+    const floored = raw.map(Math.floor);
+    let remainder = 100 - floored.reduce((sum, value) => sum + value, 0);
+    const order = raw
+        .map((value, index) => ({ index: index, fraction: value - Math.floor(value) }))
+        .sort((a, b) => b.fraction - a.fraction);
+
+    for (let i = 0; i < order.length && remainder > 0; i++) {
+        if (order[i].fraction > 0) {
+            floored[order[i].index] += 1;
+            remainder -= 1;
+        }
+    }
+
+    return floored;
 }
 
 // График по статусам оформления
