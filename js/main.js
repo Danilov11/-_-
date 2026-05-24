@@ -488,16 +488,36 @@ function showLoginScreen() {
     sessionStorage.removeItem('dashboardAccessGranted');
     sessionStorage.removeItem('employeeMode');
 
+    // Восстанавливаем ресторан если был выбран ранее
+    restoreRestaurant();
+
     const loginScreen = document.getElementById('login-screen');
     if (loginScreen) loginScreen.classList.remove('hidden');
 
-    // Грузим данные в фоне, не показывая основной интерфейс
-    loadData();
+    // Показываем шаг выбора ресторана первым
+    switchLoginStep('restaurant');
 
     setupLoginListeners();
 }
 
 function setupLoginListeners() {
+    // Кнопки выбора ресторана
+    CONFIG.restaurants.forEach(r => {
+        const btn = document.getElementById(`restaurant-${r.id}-btn`);
+        if (btn) btn.addEventListener('click', () => {
+            setRestaurant(r.id);
+            // Обновляем подзаголовок шага выбора роли
+            const subtitle = document.getElementById('login-role-subtitle');
+            if (subtitle) subtitle.textContent = `Ресторан: ${r.name} — выберите роль`;
+            // Обновляем login-partner
+            const partner = document.querySelector('.login-partner');
+            if (partner) partner.textContent = 'Партнёр – ' + r.name;
+            switchLoginStep('role');
+            // Загружаем данные в фоне
+            loadData();
+        });
+    });
+
     // Кнопки выбора роли
     const managerBtn = document.getElementById('role-manager-btn');
     const employeeBtn = document.getElementById('role-employee-btn');
@@ -505,8 +525,10 @@ function setupLoginListeners() {
     if (employeeBtn) employeeBtn.addEventListener('click', () => switchLoginStep('employee'));
 
     // Назад
+    const backFromRole = document.getElementById('login-back-from-role');
     const backFromManager = document.getElementById('login-back-from-manager');
     const backFromEmployee = document.getElementById('login-back-from-employee');
+    if (backFromRole) backFromRole.addEventListener('click', () => switchLoginStep('restaurant'));
     if (backFromManager) backFromManager.addEventListener('click', () => switchLoginStep('role'));
     if (backFromEmployee) backFromEmployee.addEventListener('click', () => switchLoginStep('role'));
 
@@ -526,7 +548,6 @@ function setupLoginListeners() {
         employeeInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') handleEmployeeLogin();
         });
-        // Автоформат: добавляем +7 если пусто
         employeeInput.addEventListener('focus', () => {
             if (!employeeInput.value) employeeInput.value = '+7';
         });
@@ -538,9 +559,10 @@ function setupLoginListeners() {
 }
 
 function switchLoginStep(step) {
-    document.getElementById('login-step-role').classList.add('hidden');
-    document.getElementById('login-step-manager').classList.add('hidden');
-    document.getElementById('login-step-employee').classList.add('hidden');
+    ['restaurant', 'role', 'manager', 'employee'].forEach(s => {
+        const el = document.getElementById(`login-step-${s}`);
+        if (el) el.classList.add('hidden');
+    });
 
     // Сбрасываем ошибки
     const managerError = document.getElementById('manager-login-error');
@@ -548,7 +570,8 @@ function switchLoginStep(step) {
     if (managerError) managerError.classList.add('hidden');
     if (employeeError) employeeError.classList.add('hidden');
 
-    document.getElementById(`login-step-${step}`).classList.remove('hidden');
+    const target = document.getElementById(`login-step-${step}`);
+    if (target) target.classList.remove('hidden');
 
     // Фокус на поле ввода
     if (step === 'manager') {
