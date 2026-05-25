@@ -126,9 +126,10 @@ function jsonResponse_(obj) {
 
 function findColumnIndex(headers, possibleNames) {
   for (var i = 0; i < headers.length; i++) {
-    var header = String(headers[i] || '').toLowerCase().trim();
+    // Убираем обычные пробелы И неразрывные пробелы (\xa0)
+    var header = String(headers[i] || '').toLowerCase().trim().replace(/ /g, '').trim();
     for (var j = 0; j < possibleNames.length; j++) {
-      if (header === possibleNames[j].toLowerCase()) return i;
+      if (header === possibleNames[j].toLowerCase().trim()) return i;
     }
   }
   return -1;
