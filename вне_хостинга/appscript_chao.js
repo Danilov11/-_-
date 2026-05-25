@@ -53,84 +53,93 @@ function doGet(e) {
     }
     
     // ===================== ЛИСТ ВЫПЛАТ =====================
-    // Пробуем основное имя, затем альтернативное
+    // СТРУКТУРА ТАБЛИЦЫ ЧАО ПИЦЦА:
+    // Строка 1: заголовок "Условия 25%" — пропускаем
+    // Строка 2: заголовки колонок (A=Год, B=Период, C=Должность, D=ФИО, E=Телефон, F=Сумма, G=Статус, H=Комментарий)
+    // Строка 3+: данные
     var paymentsSheet = spreadsheet.getSheetByName(PAYMENTS_SHEET_NAME)
                      || spreadsheet.getSheetByName(PAYMENTS_SHEET_NAME_ALT);
     var paymentsData = [];
-    
+
     if (paymentsSheet) {
       var paymentsValues = paymentsSheet.getDataRange().getValues();
-      var paymentHeaders = paymentsValues[0];
-      
-      // НОВАЯ СТРУКТУРА КОЛОНОК:
-      // A (0): Год
-      // B (1): Период выплаты
-      // C (2): Сотрудник
-      // D (3): Телефон
-      // E (4): Сумма из реестра
-      // F (5): Удержание
-      // G (6): Итог с удержанием
-      // H (7): Комиссия платформы
-      // I (8): ИТОГ к выплате
-      // J (9): Статус
-      // K (10): Комментарий
-      // L (11): ИНН ⭐ НОВОЕ
-      
+
+      // Ищем строку с заголовками: ищем строку где есть 'ФИО' или 'Сотрудник'
+      var headerRowIndex = 0;
+      for (var h = 0; h < Math.min(5, paymentsValues.length); h++) {
+        var rowStr = paymentsValues[h].join('|').toLowerCase();
+        if (rowStr.indexOf('фио') >= 0 || rowStr.indexOf('сотрудник') >= 0) {
+          headerRowIndex = h;
+          break;
+        }
+      }
+      var paymentHeaders = paymentsValues[headerRowIndex];
+      var dataStartIndex = headerRowIndex + 1;
+
       var paymentColumnIndexes = {
-        year: findColumnIndex(paymentHeaders, ['Год', 'год']),
-        period: findColumnIndex(paymentHeaders, ['Период выплаты', 'Период', 'период']),
+        year:     findColumnIndex(paymentHeaders, ['Год', 'год']),
+        period:   findColumnIndex(paymentHeaders, ['Период выплаты', 'Период', 'период']),
+        position: findColumnIndex(paymentHeaders, ['Должность', 'должность']),
         employee: findColumnIndex(paymentHeaders, ['Сотрудник', 'ФИО', 'Имя', 'сотрудник', 'фио']),
-        phone: findColumnIndex(paymentHeaders, ['Телефон', 'Номер телефона', 'телефон', 'номер']),
-        amount: findColumnIndex(paymentHeaders, ['Из реестра', 'Сумма из реестра', 'Сумма', 'сумма']),
-        status: findColumnIndex(paymentHeaders, ['Статус', 'статус']),
-        comment: findColumnIndex(paymentHeaders, ['Комментарий', 'комментарий']),
-        inn: findColumnIndex(paymentHeaders, ['ИНН', 'инн']) // ⭐ НОВОЕ
+        phone:    findColumnIndex(paymentHeaders, ['Телефон', 'Номер телефона', 'телефон', 'номер']),
+        amount:   findColumnIndex(paymentHeaders, ['Сумма из реестра', 'Из реестра', 'Сумма', 'сумма']),
+        status:   findColumnIndex(paymentHeaders, ['Статус', 'статус']),
+        comment:  findColumnIndex(paymentHeaders, ['Комментарий', 'комментарий']),
+        inn:      findColumnIndex(paymentHeaders, ['ИНН', 'инн'])
       };
 
       if (e && e.parameter && e.parameter.action === 'debugPayments') {
         return jsonResponse_({
           success: true,
           minYear: PAYMENTS_MIN_YEAR,
+          headerRowIndex: headerRowIndex,
           headers: paymentHeaders,
           columnIndexes: paymentColumnIndexes,
-          firstDataRow: paymentsValues[1] || []
+          firstDataRow: paymentsValues[dataStartIndex] || []
         });
       }
-      
-      // Обрабатываем данные, начиная со второй строки
-      for (var i = 1; i < paymentsValues.length; i++) {
+
+      // Обрабатываем данные, начиная со строки после заголовков
+      for (var i = dataStartIndex; i < paymentsValues.length; i++) {
         var row = paymentsValues[i];
-        
+
         // Пропускаем пустые строки
         if (!row[paymentColumnIndexes.employee] || row[paymentColumnIndexes.employee] === '') {
           continue;
         }
-        
+
         // Преобразуем сумму в число
         var amount = parseSheetNumber_(row[paymentColumnIndexes.amount]);
-        
+
         // Преобразуем год в число
         var year = getPaymentYear_(row, paymentColumnIndexes);
         if (!year || year < PAYMENTS_MIN_YEAR) {
           continue;
         }
-        
-        // ИНН - новая колонка L (индекс 11)
+
+        // ИНН (если есть)
         var inn = '';
         if (paymentColumnIndexes.inn >= 0 && row[paymentColumnIndexes.inn]) {
           inn = String(row[paymentColumnIndexes.inn]).trim();
         }
-        
+
+        // Должность
+        var position = '';
+        if (paymentColumnIndexes.position >= 0 && row[paymentColumnIndexes.position]) {
+          position = String(row[paymentColumnIndexes.position]).trim();
+        }
+
         paymentsData.push({
           id: i,
           year: year,
-          period: row[paymentColumnIndexes.period] || '',
+          period:   row[paymentColumnIndexes.period]   || '',
           employee: row[paymentColumnIndexes.employee] || '',
-          phone: String(row[paymentColumnIndexes.phone] || ''),
-          amount: amount,
-          status: row[paymentColumnIndexes.status] || '',
-          comment: row[paymentColumnIndexes.comment] || '',
-          inn: inn // ⭐ ДОБАВЛЕНО: ИНН
+          phone:    String(row[paymentColumnIndexes.phone] || ''),
+          amount:   amount,
+          status:   row[paymentColumnIndexes.status]   || '',
+          comment:  row[paymentColumnIndexes.comment]  || '',
+          inn:      inn,
+          position: position
         });
       }
     }
