@@ -3,8 +3,8 @@
 // Только один лист: 'ЧАО Пицца'
 // ============================================
 
-var SPREADSHEET_ID = '16TqrqLY_pSNx0kBAX6c6JzSLOEmwd7bdLhwPWXEI1vE';
-var PAYMENTS_SHEET_NAME = 'ЧАО Пицца';
+var SPREADSHEET_ID = '1g3YtSWlrxMZe-_aa7_hYhjOMZc6h_yqC9aS2TXSL3lQ';
+var PAYMENTS_SHEET_NAME = 'Лист1';
 var PAYMENTS_MIN_YEAR = 2024;
 
 // СТРУКТУРА ЛИСТА 'ЧАО Пицца':
