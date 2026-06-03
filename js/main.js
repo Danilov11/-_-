@@ -8,6 +8,7 @@ let allDocuments = [];
 let filteredDocuments = [];
 let allDetours = [];
 let accountsData = { payments: [], transactions: [] }; // Данные счетов
+let dataFetched = false; // Флаг: данные были загружены хотя бы раз
 let mergedData = {}; // Объединённые данные по телефонам
 let currentPage = 1;
 let currentDocPage = 1;
@@ -610,7 +611,8 @@ function handleManagerLogin() {
         showScreen('home');
 
         // Если данные уже загружены — перерисовываем, иначе грузим заново
-        if (allPayments.length > 0 || allDocuments.length > 0) {
+        // dataFetched нужен для случая когда выплат 0, но документы есть (напр. Чао Пицца)
+        if (dataFetched || allPayments.length > 0 || allDocuments.length > 0) {
             applyFilters();
             applyDocFilters();
             updateStatistics();

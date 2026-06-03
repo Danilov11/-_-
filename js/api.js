@@ -60,6 +60,7 @@ async function loadData() {
 
 // Функция для обработки загруженных данных
 function processLoadedData(result) {
+    dataFetched = true; // Данные получены хотя бы раз
     console.log('Получены данные:', result);
     
     // Проверяем наличие результата
