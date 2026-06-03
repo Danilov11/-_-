@@ -12,7 +12,7 @@ const CONFIG = {
         {
             id: 'chao',
             name: 'Чао Пицца',
-            appsScriptUrl: 'https://script.google.com/macros/s/AKfycbygiWgUz-z9Mj62WeowvMXCLYoWaVMsU4iPXlxfqybPqOh6Xq_2zIu3AenNAWmNr_WM4Q/exec'
+            appsScriptUrl: 'https://script.google.com/macros/s/AKfycbwNzuZ14_PPPWaF4xxGFGIcB9tOgLXCtMRQwb8AZr7JvQDlf-KYHCpUaIF_6JBhpa0TOg/exec'
         }
     ],
 
