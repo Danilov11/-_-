@@ -61,11 +61,6 @@ function setRestaurant(id) {
     CONFIG.appsScriptUrl = r.appsScriptUrl;
     sessionStorage.setItem('selectedRestaurant', id);
 
-    // Сбрасываем данные при смене ресторана
-    if (typeof dataFetched !== 'undefined') dataFetched = false;
-    if (typeof allPayments !== 'undefined') { allPayments = []; filteredPayments = []; }
-    if (typeof allDocuments !== 'undefined') { allDocuments = []; filteredDocuments = []; }
-
     // Обновляем название в навигации
     const badge = document.getElementById('nav-restaurant-badge');
     if (badge) badge.textContent = r.name;
