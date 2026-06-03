@@ -61,11 +61,13 @@ function setRestaurant(id) {
     CONFIG.appsScriptUrl = r.appsScriptUrl;
     sessionStorage.setItem('selectedRestaurant', id);
 
-    // Обновляем название в навигации
+    // Обновляем название в навигации и UI
     const badge = document.getElementById('nav-restaurant-badge');
     if (badge) badge.textContent = r.name;
     const partnerBtn = document.querySelector('.brand-partner-name[data-page="home"]');
     if (partnerBtn) partnerBtn.textContent = 'Партнер – ' + r.name;
+    const statName = document.getElementById('stat-restaurant-name');
+    if (statName) statName.textContent = r.name;
 }
 
 // При загрузке восстанавливаем выбранный ресторан из сессии
