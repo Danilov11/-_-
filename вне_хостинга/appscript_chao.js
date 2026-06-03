@@ -5,7 +5,7 @@
 // ============================================
 
 var SPREADSHEET_ID          = '1g3YtSWlrxMZe-_aa7_hYhjOMZc6h_yqC9aS2TXSL3lQ';
-var PAYMENTS_SHEET_NAME     = 'Лист1';
+var PAYMENTS_SHEET_NAME     = 'Чао Пицца';
 var PAYMENTS_MIN_YEAR       = 2024;
 
 var DOCUMENTS_SPREADSHEET_ID = '1YKcsCrlPX5n1X_XGQcGQFSbqT3S0U4-xHxpmGGUvUVw';
