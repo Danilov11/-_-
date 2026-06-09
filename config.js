@@ -57,6 +57,15 @@ const CONFIG = {
 function setRestaurant(id) {
     const r = CONFIG.restaurants.find(x => x.id === id);
     if (!r) return;
+
+    // Если ресторан меняется — сбрасываем кэш данных предыдущего ресторана
+    if (CONFIG.currentRestaurantId !== id) {
+        if (typeof dataFetched !== 'undefined')   dataFetched   = false;
+        if (typeof allPayments !== 'undefined')   allPayments   = [];
+        if (typeof allDocuments !== 'undefined')  allDocuments  = [];
+        if (typeof allDetours !== 'undefined')    allDetours    = [];
+    }
+
     CONFIG.currentRestaurantId = id;
     CONFIG.appsScriptUrl = r.appsScriptUrl;
     sessionStorage.setItem('selectedRestaurant', id);

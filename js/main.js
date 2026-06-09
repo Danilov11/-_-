@@ -514,8 +514,6 @@ function setupLoginListeners() {
             const partner = document.querySelector('.login-partner');
             if (partner) partner.textContent = 'Партнёр – ' + r.name;
             switchLoginStep('role');
-            // Загружаем данные в фоне
-            loadData();
         });
     });
 
