@@ -592,7 +592,9 @@ function handleManagerLogin() {
     const error = document.getElementById('manager-login-error');
     const password = input ? input.value : '';
 
-    if (password === CONFIG.platformPassword) {
+    const currentRestaurant = CONFIG.restaurants.find(r => r.id === CONFIG.currentRestaurantId);
+    const effectivePlatformPassword = (currentRestaurant && currentRestaurant.platformPassword) || CONFIG.platformPassword;
+    if (password === effectivePlatformPassword) {
         sessionStorage.setItem('platformAccessGranted', 'true');
         const loginScreen = document.getElementById('login-screen');
         if (loginScreen) loginScreen.classList.add('hidden');

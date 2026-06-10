@@ -101,7 +101,9 @@ function checkDashboardPassword() {
     // Запрашиваем пароль
     const password = prompt('Введите пароль для доступа к дашборду:');
     
-    if (password === CONFIG.dashboardPassword) {
+    const currentRestaurant = CONFIG.restaurants.find(r => r.id === CONFIG.currentRestaurantId);
+    const effectiveDashboardPassword = (currentRestaurant && currentRestaurant.dashboardPassword) || CONFIG.dashboardPassword;
+    if (password === effectiveDashboardPassword) {
         // Пароль правильный, сохраняем доступ в сессии
         sessionStorage.setItem('dashboardAccessGranted', 'true');
         if (elements.dashboardScreen) elements.dashboardScreen.classList.remove('hidden');

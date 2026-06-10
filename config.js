@@ -14,7 +14,9 @@ const CONFIG = {
             id: 'chao',
             name: 'Чао Пицца',
             appsScriptUrl: 'https://script.google.com/macros/s/AKfycbynx6_cDkMigEGM0hVfJJkBxSSd78ME5FOEQ8BIBQcgMfNhzanTO52YJSaiYx0lOHtj/exec',
-            minPaymentYear: 2026
+            minPaymentYear: 2026,
+            platformPassword: '99',
+            dashboardPassword: '1190912'
         }
     ],
 
