@@ -7,7 +7,8 @@ const CONFIG = {
         {
             id: 'franklins',
             name: 'Франклинс',
-            appsScriptUrl: 'https://script.google.com/macros/s/AKfycbyfKGRHbud7H57e_i7m8nm6mAdLo7dVwp4rumUup4tzEx5yPNh0JLQZppsE4JyCkWgd/exec'
+            appsScriptUrl: 'https://script.google.com/macros/s/AKfycbyfKGRHbud7H57e_i7m8nm6mAdLo7dVwp4rumUup4tzEx5yPNh0JLQZppsE4JyCkWgd/exec',
+            minPaymentYear: 2026
         },
         {
             id: 'chao',
