@@ -103,8 +103,13 @@ function processLoadedData(result) {
                     console.warn('Ошибка при обработке выплаты:', e, item);
                     return null;
                 }
-            }).filter(p => p !== null);
-            
+            }).filter(p => {
+                if (!p) return false;
+                const r = CONFIG.restaurants.find(x => x.id === CONFIG.currentRestaurantId);
+                const minYear = r && r.minPaymentYear ? r.minPaymentYear : 0;
+                return !minYear || p.year >= minYear;
+            });
+
             console.log('Обработано выплат:', allPayments.length);
             
             // ДИНАМИЧЕСКОЕ ОПРЕДЕЛЕНИЕ ПЕРИОДОВ И СТАТУСОВ
